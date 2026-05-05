@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГрузоРасчёт Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Golos+Text:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0e18;--s1:#111626;--s2:#161d2e;--s3:#1c2540;
+  --b1:rgba(255,255,255,.06);--b2:rgba(255,255,255,.13);
+  --acc:#e8431a;--acc2:#f7a325;--blue:#2b7cff;--grn:#22c55e;
+  --red:#ef4444;--warn:#f59e0b;--pur:#a855f7;
+  --tx:#dce3f0;--m1:#6b7899;--m2:#8f9dbf;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Golos Text',sans-serif;font-size:13px}
+
+/* ══ TOPBAR ══ */
+.topbar{height:48px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:50;position:relative}
+.logo{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0}
+.logo-sq{width:26px;height:26px;background:var(--acc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.logo em{color:var(--acc2);font-style:normal}
+.sep{width:1px;height:22px;background:var(--b1);flex-shrink:0}
+.top-tabs{display:flex;gap:2px}
+.ttab{padding:5px 13px;border-radius:6px;border:none;background:transparent;color:var(--m1);font-family:'Golos Text',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ttab:hover{background:rgba(255,255,255,.05);color:var(--tx)}
+.ttab.on{background:rgba(232,67,26,.15);color:var(--acc)}
+.ttab .badge{background:rgba(232,67,26,.2);color:var(--acc);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
+.spacer{flex:1}
+.btn-calc{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-family:'Golos Text',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-calc:hover{background:#d03518;box-shadow:0 0 20px rgba(232,67,26,.4)}
+
+/* ══ MAIN LAYOUT ══ */
+.app{display:flex;flex:1;overflow:hidden;height:calc(100vh - 48px)}
+
+/* ══ PROJECTS SIDEBAR ══ */
+.proj-sidebar{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.ps-header{padding:10px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.ps-title{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--m1)}
+.ps-add{width:22px;height:22px;background:rgba(43,124,255,.15);color:var(--blue);border:none;border-radius:5px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ps-add:hover{background:rgba(43,124,255,.28)}
+.proj-list{flex:1;overflow-y:auto;padding:6px}
+.proj-row{border-radius:7px;padding:8px 10px;cursor:pointer;transition:.15s;margin-bottom:2px;position:relative;group:true}
+.proj-row:hover{background:var(--s2)}
+.proj-row.active{background:rgba(232,67,26,.1);border-left:2px solid var(--acc)}
+.proj-row.active .pr-name{color:var(--tx)}
+.pr-name{font-size:12px;font-weight:600;color:var(--m2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.pr-meta{font-size:10px;color:var(--m1);margin-top:2px}
+.pr-actions{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);gap:3px}
+.proj-row:hover .pr-actions{display:flex}
+.pr-btn{background:rgba(255,255,255,.07);border:none;border-radius:4px;color:var(--m1);width:18px;height:18px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.pr-btn:hover{background:rgba(255,255,255,.14);color:var(--tx)}
+.pr-btn.del:hover{background:rgba(239,68,68,.2);color:var(--red)}
+.ps-new{padding:8px;border-top:1px solid var(--b1)}
+.ps-new input{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx);padding:5px 8px;font-family:'Golos Text',sans-serif;font-size:11px;outline:none}
+.ps-new input:focus{border-color:var(--blue)}
+.ps-new input::placeholder{color:var(--m1)}
+
+/* ══ WORK AREA ══ */
+.work{display:flex;flex:1;overflow:hidden}
+
+/* ══ LEFT PANEL (cargo/transport/result) ══ */
+.left{width:270px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.tab-content{display:none;flex-direction:column;flex:1;overflow:hidden}
+.tab-content.on{display:flex}
+.sec{padding:10px 12px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.sec-hd{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--m1);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.sec-scroll{flex:1;overflow-y:auto;padding:8px 10px}
+
+/* cargo item */
+.ci{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:.15s}
+.ci:hover{border-color:var(--b2)}
+.ci.on{border-color:var(--blue);background:rgba(43,124,255,.07)}
+.ci-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.ci-body{flex:1;min-width:0}
+.ci-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-dims{font-size:10px;color:var(--m1);margin-top:1px}
+.ci-qty{font-size:11px;color:var(--m2);font-weight:600;white-space:nowrap;flex-shrink:0}
+.ci-del{background:none;border:none;color:var(--m1);cursor:pointer;font-size:14px;padding:1px 3px;transition:.15s;flex-shrink:0}
+.ci-del:hover{color:var(--red)}
+
+/* action buttons row */
+.act-row{display:flex;gap:5px;margin-bottom:6px}
+.btn-a{flex:1;padding:6px 8px;border-radius:6px;border:none;font-family:'Golos Text',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-add{background:rgba(43,124,255,.12);color:var(--blue);border:1px solid rgba(43,124,255,.2)}
+.btn-add:hover{background:rgba(43,124,255,.22)}
+.btn-cat{background:rgba(34,197,94,.1);color:var(--grn);border:1px solid rgba(34,197,94,.2)}
+.btn-cat:hover{background:rgba(34,197,94,.2)}
+
+/* summary */
+.sum-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--b1);font-size:11px}
+.sum-row:last-child{border:none}
+.sv{font-weight:700}
+.sv.a2{color:var(--acc2)}
+.sv.gn{color:var(--grn)}
+.sv.rd{color:var(--red)}
+
+/* transport */
+.tr-cat-label{font-size:9px;color:var(--m1);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin:8px 0 4px;padding-left:2px}
+.tr-card{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:8px 10px;margin-bottom:3px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:8px}
+.tr-card:hover{border-color:var(--b2)}
+.tr-card.on{border-color:var(--acc2);background:rgba(247,163,37,.07)}
+.tr-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.tr-inf{flex:1;min-width:0}
+.tr-nm{font-size:12px;font-weight:600}
+.tr-sp{font-size:10px;color:var(--m1)}
+.tr-gs{font-size:9px;color:var(--grn);margin-top:1px}
+.tr-chk{color:var(--acc2);font-size:13px;flex-shrink:0}
+.load-mode-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.lm{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:8px;cursor:pointer;text-align:center;font-size:11px;font-weight:600;color:var(--m1);transition:.15s}
+.lm:hover{border-color:var(--b2)}
+.lm.on{border-color:rgba(247,163,37,.5);color:var(--acc2);background:rgba(247,163,37,.07)}
+.lm.on.blue{border-color:rgba(43,124,255,.5);color:var(--blue);background:rgba(43,124,255,.07)}
+
+/* result */
+.res-card{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.res-card.hl{border-color:var(--acc2);cursor:pointer}
+.res-card.hl:hover{background:rgba(247,163,37,.05)}
+.res-title{font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+.wbox{background:rgba(247,163,37,.08);border:1px solid rgba(247,163,37,.25);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--warn);margin-bottom:5px;line-height:1.5}
+.ebox{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:5px;line-height:1.5}
+.gbox{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--grn);margin-bottom:5px}
+
+/* ══ CENTER ══ */
+.center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.cvs-hd{background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.pal-nav{display:flex;align-items:center;gap:6px}
+.pn-btn{background:rgba(255,255,255,.06);border:1px solid var(--b1);border-radius:5px;color:var(--tx);width:24px;height:24px;cursor:pointer;font-size:12px;transition:.15s;display:flex;align-items:center;justify-content:center}
+.pn-btn:hover{background:rgba(255,255,255,.12)}
+.pn-label{font-size:11px;color:var(--m2);min-width:110px;text-align:center}
+.vbtns{display:flex;gap:3px}
+.vb{background:rgba(255,255,255,.05);border:1px solid var(--b1);border-radius:5px;color:var(--m2);padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.vb:hover{background:rgba(255,255,255,.09);color:var(--tx)}
+.vb.on{background:rgba(232,67,26,.15);color:var(--acc);border-color:rgba(232,67,26,.3)}
+.cvs-wrap{flex:1;position:relative;overflow:hidden}
+#cvs{display:block;cursor:grab}
+#cvs:active{cursor:grabbing}
+.hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;color:var(--m1)}
+.hint .hi{font-size:44px;opacity:.2}
+.hint p{font-size:12px;opacity:.35;text-align:center;max-width:220px}
+
+/* axis bar */
+.ax-bar{background:var(--s1);border-top:1px solid var(--b1);padding:6px 12px;display:flex;align-items:center;gap:14px;flex-shrink:0;flex-wrap:wrap;display:none}
+.ax-it{font-size:10px;color:var(--m1);display:flex;align-items:center;gap:4px}
+.ax-it b{color:var(--tx)}
+.ax-dot{width:6px;height:6px;border-radius:50%}
+
+/* status */
+.stbar{background:var(--s1);border-top:1px solid var(--b1);padding:4px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.st{font-size:10px;color:var(--m1);display:flex;align-items:center;gap:3px}
+.st b{color:var(--tx)}
+.sdot{width:5px;height:5px;border-radius:50%}
+
+/* ══ RIGHT PANEL ══ */
+.right{width:276px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--b1);overflow-y:auto;display:flex;flex-direction:column}
+.rp-empty{padding:24px 16px;text-align:center;color:var(--m1);margin-top:20px}
+.rp-empty .ri{font-size:32px;opacity:.25;margin-bottom:8px}
+.rp-empty p{font-size:11px;opacity:.5}
+.fsec{padding:12px 14px;border-bottom:1px solid var(--b1)}
+.fhd{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--m1);margin-bottom:10px}
+.fl{display:block;font-size:10px;color:var(--m2);font-weight:600;text-transform:uppercase;letter-spacing:.2px;margin-bottom:3px}
+.fi,.fsel{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx);padding:6px 9px;font-family:'Golos Text',sans-serif;font-size:12px;transition:.15s;outline:none;appearance:none}
+.fi:focus,.fsel:focus{border-color:var(--blue);background:var(--s3)}
+.fg{margin-bottom:9px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.ftog{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.ftog label{font-size:11px;color:var(--m2)}
+.tog{width:32px;height:17px;background:var(--s3);border-radius:9px;position:relative;cursor:pointer;border:1px solid var(--b1);transition:.2s;flex-shrink:0}
+.tog.on{background:var(--blue);border-color:var(--blue)}
+.tog::after{content:'';position:absolute;width:11px;height:11px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s}
+.tog.on::after{left:17px}
+.cin{width:100%;height:26px;border-radius:5px;border:1px solid var(--b1);cursor:pointer;padding:2px;background:var(--s2)}
+.bsave{width:100%;background:var(--blue);border:none;border-radius:7px;color:#fff;font-family:'Golos Text',sans-serif;font-size:12px;font-weight:700;padding:8px;cursor:pointer;transition:.15s;margin-top:2px}
+.bsave:hover{background:#1a6aef}
+.bsec{width:100%;background:transparent;border:1px solid var(--b1);border-radius:7px;color:var(--m2);font-family:'Golos Text',sans-serif;font-size:11px;padding:6px;cursor:pointer;transition:.15s;margin-top:4px}
+.bsec:hover{border-color:var(--b2);color:var(--tx)}
+.bsec.grn{border-color:rgba(34,197,94,.2);color:var(--grn)}
+.bsec.grn:hover{background:rgba(34,197,94,.1)}
+
+/* axes panel in right */
+.ax-gauge{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:11px 12px;margin-bottom:6px}
+.ag-title{font-size:10px;color:var(--m1);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;font-weight:600}
+.ag-row{margin-bottom:7px}
+.ag-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px}
+.ag-bar{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.ag-fill{height:100%;border-radius:3px;transition:.4s}
+
+/* ══ CATALOG OVERLAY ══ */
+.cat-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);align-items:flex-start;justify-content:flex-end}
+.cat-overlay.on{display:flex}
+.cat-panel{width:320px;height:100%;background:var(--s1);border-left:1px solid var(--b2);display:flex;flex-direction:column;animation:slideIn .2s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.cat-hd{padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.cat-hd h3{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700}
+.cat-close{background:rgba(255,255,255,.07);border:none;color:var(--tx);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.cat-close:hover{background:rgba(255,255,255,.14)}
+.cat-tabs{display:flex;gap:2px;padding:8px 10px;border-bottom:1px solid var(--b1)}
+.ctab{flex:1;padding:5px;border-radius:5px;border:none;background:transparent;color:var(--m1);font-family:'Golos Text',sans-serif;font-size:11px;cursor:pointer;transition:.15s;text-align:center}
+.ctab:hover{background:rgba(255,255,255,.05)}
+.ctab.on{background:rgba(43,124,255,.15);color:var(--blue)}
+.cat-body{flex:1;overflow-y:auto;padding:8px 10px}
+.cat-item{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:9px 11px;margin-bottom:4px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:.15s}
+.cat-item:hover{border-color:var(--blue)}
+.cat-item .add-btn{font-size:10px;color:var(--blue);font-weight:600;white-space:nowrap;flex-shrink:0}
+.cat-item .edit-btn{font-size:10px;color:var(--m1);cursor:pointer;margin-left:4px}
+.cat-item .del-btn{font-size:10px;color:var(--red);cursor:pointer;margin-left:2px}
+.cat-footer{padding:10px;border-top:1px solid var(--b1)}
+
+/* ══ MODAL ══ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:24px;width:460px;max-height:80vh;overflow-y:auto}
+.modal h2{font-family:'Unbounded',sans-serif;font-size:14px;margin-bottom:4px}
+.modal .sub{font-size:11px;color:var(--m1);margin-bottom:18px}
+.mbtns{display:flex;gap:7px;margin-top:16px}
+.mbtn{flex:1;padding:8px;border-radius:7px;border:none;font-family:'Golos Text',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.mbtn.p{background:var(--acc);color:#fff}.mbtn.p:hover{background:#d03518}
+.mbtn.s{background:var(--s2);color:var(--m2);border:1px solid var(--b1)}.mbtn.s:hover{color:var(--tx)}
+
+/* suggest */
+.sg-card{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px 12px;margin-bottom:4px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:9px}
+.sg-card:hover{border-color:var(--acc2)}
+.sg-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.b-ok{background:rgba(34,197,94,.15);color:var(--grn)}
+.b-warn{background:rgba(247,163,37,.15);color:var(--warn)}
+
+/* toast */
+.toast{position:fixed;bottom:18px;right:18px;z-index:500;background:var(--s3);border:1px solid var(--b2);border-radius:8px;padding:9px 14px;font-size:12px;transform:translateX(140%);transition:.25s;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:300px;display:flex;align-items:center;gap:7px}
+.toast.on{transform:translateX(0)}
+.toast.ok{border-color:rgba(34,197,94,.3)}.toast.err{border-color:rgba(239,68,68,.3)}.toast.warn{border-color:rgba(247,163,37,.3)}
+
+/* pdf */
+.pdf-wrap{background:#fff;border-radius:8px;padding:18px;color:#1a1a2e;font-size:11px;line-height:1.7;margin-bottom:10px}
+.pdf-wrap h3{color:#e8431a;font-size:12px;margin:8px 0 4px;border-bottom:1.5px solid #e8431a;padding-bottom:2px}
+.pdf-row{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:2px 0}
+.pdf-row:last-child{border:none}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-sq">📦</div>Груз<em>Расчёт</em></div>
+  <div class="sep"></div>
+  <div class="top-tabs">
+    <button class="ttab on" onclick="switchTab(this,'cargo')" id="tb_cargo">📦 Грузы</button>
+    <button class="ttab" onclick="switchTab(this,'transport')" id="tb_transport">🚛 Транспорт</button>
+    <button class="ttab" onclick="switchTab(this,'result')" id="tb_result">📊 Результат</button>
+    <button class="ttab" onclick="switchTab(this,'axes')" id="tb_axes">⚖️ Оси</button>
+    <button class="ttab" onclick="openCatalog()" style="color:var(--grn)">📚 Справочник</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn-calc" onclick="calculate()">⚡ Рассчитать</button>
+</div>
+
+<div class="app">
+
+<!-- ══ PROJECTS SIDEBAR ══ -->
+<div class="proj-sidebar">
+  <div class="ps-header">
+    <span class="ps-title">Проекты</span>
+    <button class="ps-add" onclick="newProject()" title="Новый проект">+</button>
+  </div>
+  <div class="proj-list" id="projList"></div>
+  <div class="ps-new">
+    <input id="newProjInput" placeholder="Новый проект…" onkeydown="if(event.key==='Enter')newProject()">
+  </div>
+</div>
+
+<!-- ══ WORK AREA ══ -->
+<div class="work">
+
+<!-- ══ LEFT PANEL ══ -->
+<div class="left">
+
+  <!-- CARGO TAB -->
+  <div class="tab-content on" id="tab-cargo">
+    <div class="sec">
+      <div class="sec-hd">
+        Список грузов
+      </div>
+      <div class="act-row">
+        <button class="btn-a btn-add" onclick="openCargoForm()">+ Добавить</button>
+        <button class="btn-a btn-cat" onclick="openCatalog('add')">📚 Из справочника</button>
+      </div>
+      <div id="cargoList"><div style="color:var(--m1);font-size:11px;text-align:center;padding:14px">Грузов нет</div></div>
+    </div>
+    <div class="sec-scroll">
+      <div style="font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m1);margin-bottom:8px">Итого</div>
+      <div id="cargoSum"><div style="color:var(--m1);font-size:11px;text-align:center">—</div></div>
+    </div>
+  </div>
+
+  <!-- TRANSPORT TAB -->
+  <div class="tab-content" id="tab-transport">
+    <div class="sec">
+      <div class="sec-hd">Тип погрузки</div>
+      <div class="load-mode-row">
+        <div class="lm on" id="lm_p" onclick="setLoadMode('pallet')">🪵 По-паллетно</div>
+        <div class="lm blue" id="lm_m" onclick="setLoadMode('manual')" style="border-color:var(--b1);color:var(--m1)">💪 Ручная</div>
+      </div>
+      <div id="lmNote" style="font-size:10px;color:var(--m2);line-height:1.5;background:var(--s2);border-radius:6px;padding:7px 9px">
+        <b style="color:var(--acc2)">По-паллетно:</b> коробки на Euro-паллеты (1200×800), паллеты — вдоль оси ТС симметрично.
+      </div>
+    </div>
+    <div class="sec-scroll">
+      <div style="font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m1);margin-bottom:6px">Выберите транспорт</div>
+      <div id="trList"></div>
+    </div>
+  </div>
+
+  <!-- RESULT TAB -->
+  <div class="tab-content" id="tab-result">
+    <div class="sec-scroll">
+      <div id="resultPanel"><div style="color:var(--m1);font-size:11px;text-align:center;padding:20px">Нажмите «Рассчитать»</div></div>
+    </div>
+  </div>
+
+  <!-- AXES TAB -->
+  <div class="tab-content" id="tab-axes">
+    <div class="sec-scroll">
+      <div id="axesPanel"><div style="color:var(--m1);font-size:11px;text-align:center;padding:20px">Выполните расчёт</div></div>
+    </div>
+  </div>
+
+</div><!-- /left -->
+
+<!-- ══ CENTER ══ -->
+<div class="center">
+  <div class="cvs-hd">
+    <div class="pal-nav">
+      <button class="pn-btn" onclick="prevU()">‹</button>
+      <span class="pn-label" id="unitLabel">— / —</span>
+      <button class="pn-btn" onclick="nextU()">›</button>
+    </div>
+    <div class="vbtns">
+      <button class="vb on" id="vb3d" onclick="setV('3d')">3D</button>
+      <button class="vb" id="vbTop" onclick="setV('top')">Сверху</button>
+      <button class="vb" id="vbFr" onclick="setV('front')">Спереди</button>
+      <button class="vb" id="vbSd" onclick="setV('side')">Сбоку</button>
+      <div class="sep"></div>
+      <button class="vb" onclick="resetCam()">⊙</button>
+      <button class="vb" onclick="exportPDF()">📄 PDF</button>
+    </div>
+  </div>
+  <div class="cvs-wrap">
+    <canvas id="cvs"></canvas>
+    <div class="hint" id="hint">
+      <div class="hi">🚛</div>
+      <p>Добавьте грузы, выберите транспорт и нажмите «Рассчитать»</p>
+    </div>
+  </div>
+  <div class="ax-bar" id="axBar">
+    <div class="ax-it"><div class="ax-dot" style="background:#60a5fa"></div>Перед. ось: <b id="ax_f">—</b> кг</div>
+    <div class="ax-it"><div class="ax-dot" style="background:#f59e0b"></div>Зад. ось: <b id="ax_r">—</b> кг</div>
+    <div class="ax-it"><div class="ax-dot" style="background:#22c55e"></div>Заполнение: <b id="ax_p">—</b></div>
+    <div class="ax-it" id="ax_s"></div>
+  </div>
+  <div class="stbar">
+    <div class="st"><div class="sdot" style="background:var(--grn)"></div><b id="st_s">Готово</b></div>
+    <div class="st">Загрузка: <b id="st_f">—</b></div>
+    <div class="st">Масса: <b id="st_m">—</b></div>
+    <div class="st">Объём: <b id="st_v">—</b></div>
+    <div class="st" id="st_g" style="color:var(--m1)">Выберите транспорт</div>
+  </div>
+</div>
+
+<!-- ══ RIGHT ══ -->
+<div class="right" id="rightPanel">
+  <div class="rp-empty"><div class="ri">📝</div><p>Выберите груз для редактирования или нажмите «+ Добавить»</p></div>
+</div>
+
+</div><!-- /work -->
+</div><!-- /app -->
+
+<!-- ══ CATALOG OVERLAY ══ -->
+<div class="cat-overlay" id="catOverlay" onclick="if(event.target===this)closeCatalog()">
+  <div class="cat-panel">
+    <div class="cat-hd">
+      <h3>📚 Справочник грузов</h3>
+      <button class="cat-close" onclick="closeCatalog()">×</button>
+    </div>
+    <div class="cat-tabs">
+      <button class="ctab on" onclick="catTab(this,'use')" id="ct_use">Добавить в проект</button>
+      <button class="ctab" onclick="catTab(this,'manage')" id="ct_manage">Управление</button>
+    </div>
+    <div class="cat-body" id="catBody"></div>
+    <div class="cat-footer">
+      <button class="bsec grn" style="width:100%" onclick="saveCurrentToCatalog()">+ Сохранить текущий груз в справочник</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL (suggest) ══ -->
+<div class="modal-bg" id="suggestMod">
+  <div class="modal">
+    <h2>🚛 Груз не помещается!</h2>
+    <p class="sub" id="suggestMsg"></p>
+    <div id="suggestList"></div>
+    <div class="mbtns"><button class="mbtn s" onclick="closeMod('suggestMod')">Отмена</button></div>
+  </div>
+</div>
+
+<!-- ══ PDF MODAL ══ -->
+<div class="modal-bg" id="pdfMod">
+  <div class="modal" style="width:540px">
+    <h2>📄 Схема погрузки</h2>
+    <p class="sub">Ctrl+P для печати / сохранения в PDF</p>
+    <div class="pdf-wrap" id="pdfBody"></div>
+    <button class="mbtn s" style="width:100%" onclick="closeMod('pdfMod')">Закрыть</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE & STORAGE
+// ══════════════════════════════════════════
+const STORE_KEY = 'gruzocalc_v3';
+let state = {
+  projects: [{ id:1, name:'Проект 1', cargos:[], transport:'truck5', loadMode:'pallet', created: Date.now() }],
+  activeId: 1,
+  catalog: [
+    {id:100,name:'Мыло',unit:'cm',l:300,w:400,h:200,qty:50,qtyUnit:'коробки',mass:16,pkg:'box',danger:'0',color:'#2b7cff',stackable:true,rotatable:true,tiltable:false,fragile:false},
+    {id:101,name:'Шампунь',unit:'cm',l:250,w:350,h:300,qty:84,qtyUnit:'коробки',mass:12,pkg:'box',danger:'0',color:'#22c55e',stackable:true,rotatable:true,tiltable:false,fragile:false},
+    {id:102,name:'Паста зубная',unit:'cm',l:200,w:300,h:150,qty:115,qtyUnit:'коробки',mass:8,pkg:'box',danger:'0',color:'#f59e0b',stackable:true,rotatable:true,tiltable:false,fragile:false},
+  ]
+};
+let calcResult = null, curUnit = 0, view = '3d';
+let camX=28, camY=-38, camZ=1, drag=false, lmx=0, lmy=0;
+let editCargoId = null, catMode = 'use';
+const COLORS = ['#2b7cff','#22c55e','#f59e0b','#e8431a','#a855f7','#06b6d4','#ec4899','#84cc16'];
+let colorIdx = 0;
+
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const d=localStorage.getItem(STORE_KEY); if(d) state=JSON.parse(d); }catch(e){} }
+function ap(){ return state.projects.find(p=>p.id===state.activeId); }
+function cargos(){ return ap().cargos; }
+
+// ══════════════════════════════════════════
+// TRANSPORT DB
+// ══════════════════════════════════════════
+const TR = [
+  { id:'pal_euro', cat:'pallet', ico:'📦', name:'Паллет Euro', spec:'1200×800, до 1500 кг', gost:'ГОСТ 9078-84 / EPAL', W:1200,D:800,H:2000,maxW:1500,wb:0,aLim:null,type:'pallet' },
+  { id:'pal_fin',  cat:'pallet', ico:'📦', name:'Паллет финский', spec:'1200×1000, до 1500 кг', gost:'FIN/EPAL', W:1200,D:1000,H:2000,maxW:1500,wb:0,aLim:null,type:'pallet' },
+  { id:'gazel',    cat:'truck', ico:'🚐', name:'ГАЗель (фургон)', spec:'3000×1870×1800, до 1500 кг', gost:'ПДД кат.B/C1 | ГОСТ Р 52051', W:3000,D:1870,H:1800,maxW:1500,wb:2.5,aLim:{f:3500,r:5500},type:'truck',notes:'До 3.5т — без спецправ' },
+  { id:'gazel_nx', cat:'truck', ico:'🚐', name:'ГАЗель Next удл.', spec:'4200×2000×1900, до 2000 кг', gost:'ПДД кат.C | ГОСТ Р 52051', W:4200,D:2000,H:1900,maxW:2000,wb:3.0,aLim:{f:4000,r:6500},type:'truck',notes:'Кат.C. Путевой лист' },
+  { id:'truck5',   cat:'truck', ico:'🚛', name:'Грузовик 5 тонн', spec:'5500×2300×2200, до 5000 кг', gost:'ПДД кат.C | Техрегл.018/2011', W:5500,D:2300,H:2200,maxW:5000,wb:3.8,aLim:{f:5500,r:10000},type:'truck',notes:'Тахограф СКЗИ. Путевой лист.' },
+  { id:'tent10',   cat:'truck', ico:'🚛', name:'Тент 10 тонн', spec:'7800×2400×2600, до 10000 кг', gost:'ПДД кат.C | Техрегл.018/2011', W:7800,D:2400,H:2600,maxW:10000,wb:4.5,aLim:{f:6000,r:11500},type:'truck',notes:'Тахограф. Путевой лист.' },
+  { id:'fura',     cat:'truck', ico:'🚛', name:'Еврофура (полуприцеп)', spec:'13600×2440×2700, до 20000 кг', gost:'ПДД кат.CE | ЕСТР | ГОСТ 33996', W:13600,D:2440,H:2700,maxW:20000,wb:5.8,aLim:{f:7000,r:20000},type:'truck',notes:'Тахограф СКЗИ. ЕСТР. До 90 км/ч.' },
+  { id:'cont20',   cat:'container', ico:'🚢', name:'Контейнер 20\'', spec:'5898×2352×2395, до 21800 кг', gost:'ГОСТ ISO 668-2014', W:5898,D:2352,H:2395,maxW:21800,wb:0,aLim:null,type:'container' },
+  { id:'cont40',   cat:'container', ico:'🚢', name:'Контейнер 40\'', spec:'12032×2352×2395, до 26680 кг', gost:'ГОСТ ISO 668-2014', W:12032,D:2352,H:2395,maxW:26680,wb:0,aLim:null,type:'container' },
+  { id:'cont40hc', cat:'container', ico:'🚢', name:'Контейнер 40\' HC', spec:'12032×2352×2698, до 26330 кг', gost:'ГОСТ ISO 668-2014 HC', W:12032,D:2352,H:2698,maxW:26330,wb:0,aLim:null,type:'container' },
+  { id:'rail_k',   cat:'rail', ico:'🚂', name:'Крытый вагон РЖД', spec:'13400×2764×2572, до 65000 кг', gost:'ГОСТ 9238-2013 | ЦМ-943', W:13400,D:2764,H:2572,maxW:65000,wb:0,aLim:null,type:'rail' },
+  { id:'rail_p',   cat:'rail', ico:'🚂', name:'Полувагон РЖД', spec:'12000×2878×2060, до 69000 кг', gost:'ГОСТ 22281-76', W:12000,D:2878,H:2060,maxW:69000,wb:0,aLim:null,type:'rail' },
+];
+const CATS_TR = {pallet:'📦 Паллеты',truck:'🚛 Автотранспорт',container:'🚢 Контейнеры',rail:'🚂 ЖД'};
+const PAL = {W:1200,D:800,H:144};
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  load();
+  // Load demo cargos into active project if empty
+  if(!cargos().length){
+    state.catalog.forEach(c=>{ ap().cargos.push({...c,id:Date.now()+Math.random()}); colorIdx++; });
+    save();
+  }
+  renderProjList();
+  renderCargoList();
+  renderTrList();
+  initCanvas();
+  selectTr(ap().transport||'truck5');
+  setLoadMode(ap().loadMode||'pallet');
+  setTimeout(()=>toast('💡 Демо-данные загружены. Выберите транспорт и нажмите «Рассчитать»','ok'),700);
+});
+
+// ══════════════════════════════════════════
+// PROJECTS
+// ══════════════════════════════════════════
+function renderProjList(){
+  const el=document.getElementById('projList');
+  el.innerHTML=state.projects.map(p=>`
+    <div class="proj-row ${p.id===state.activeId?'active':''}" onclick="switchProj(${p.id})">
+      <div class="pr-name">
+        <span style="font-size:13px">${p.id===state.activeId?'📂':'📁'}</span>
+        <span id="prn_${p.id}">${p.name}</span>
+      </div>
+      <div class="pr-meta">${p.cargos.length} позиций · ${new Date(p.created).toLocaleDateString('ru')}</div>
+      <div class="pr-actions">
+        <button class="pr-btn" onclick="event.stopPropagation();renameProj(${p.id})" title="Переименовать">✏</button>
+        <button class="pr-btn" onclick="event.stopPropagation();dupProj(${p.id})" title="Дублировать">⎘</button>
+        ${state.projects.length>1?`<button class="pr-btn del" onclick="event.stopPropagation();delProj(${p.id})" title="Удалить">×</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+function switchProj(id){
+  state.activeId=id; calcResult=null; curUnit=0;
+  renderProjList(); renderCargoList(); renderTrList();
+  selectTr(ap().transport||'truck5');
+  setLoadMode(ap().loadMode||'pallet');
+  clearForm(); drawScene(); save();
+  toast(`Проект «${ap().name}»`,'ok');
+}
+function newProject(){
+  const inp=document.getElementById('newProjInput');
+  const name=inp.value.trim()||'Проект '+(state.projects.length+1);
+  const id=Date.now();
+  state.projects.push({id,name,cargos:[],transport:'truck5',loadMode:'pallet',created:Date.now()});
+  inp.value=''; save(); switchProj(id);
+}
+function renameProj(id){
+  const p=state.projects.find(x=>x.id===id);
+  const name=prompt('Новое название:',p.name);
+  if(name&&name.trim()){p.name=name.trim();save();renderProjList();}
+}
+function dupProj(id){
+  const p=state.projects.find(x=>x.id===id);
+  const nid=Date.now();
+  state.projects.push({...JSON.parse(JSON.stringify(p)),id:nid,name:p.name+' (копия)',created:Date.now()});
+  save(); switchProj(nid);
+}
+function delProj(id){
+  if(!confirm('Удалить проект?')) return;
+  state.projects=state.projects.filter(p=>p.id!==id);
+  if(state.activeId===id) state.activeId=state.projects[0].id;
+  save(); renderProjList(); renderCargoList();
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(btn,tab){
+  document.querySelectorAll('.ttab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+tab).classList.add('on');
+  if(tab==='result'&&calcResult) renderResult();
+  if(tab==='axes'&&calcResult) renderAxes();
+}
+
+// ══════════════════════════════════════════
+// CARGO LIST
+// ══════════════════════════════════════════
+function renderCargoList(){
+  const cs=cargos();
+  const el=document.getElementById('cargoList');
+  if(!cs.length){ el.innerHTML=`<div style="color:var(--m1);font-size:11px;text-align:center;padding:14px">Грузов нет</div>`; }
+  else el.innerHTML=cs.map(c=>`
+    <div class="ci ${editCargoId===c.id?'on':''}" onclick="openCargoForm(${c.id})">
+      <div class="ci-dot" style="background:${c.color}"></div>
+      <div class="ci-body">
+        <div class="ci-name">${c.name}</div>
+        <div class="ci-dims">${(c.l/10).toFixed(0)}×${(c.w/10).toFixed(0)}×${(c.h/10).toFixed(0)} см${c.fragile?' 🔸':''}</div>
+      </div>
+      <div class="ci-qty">${c.qty} ${c.qtyUnit||'шт'}</div>
+      <button class="ci-del" onclick="event.stopPropagation();delCargo(${c.id})">×</button>
+    </div>
+  `).join('');
+  // summary
+  const totQ=cs.reduce((s,c)=>s+c.qty,0);
+  const totM=cs.reduce((s,c)=>s+c.qty*c.mass,0);
+  const totV=cs.reduce((s,c)=>s+c.qty*c.l*c.w*c.h/1e9,0);
+  document.getElementById('cargoSum').innerHTML=cs.length?`
+    <div class="sum-row"><span>Позиций</span><span class="sv">${cs.length}</span></div>
+    <div class="sum-row"><span>Единиц</span><span class="sv a2">${totQ}</span></div>
+    <div class="sum-row"><span>Масса</span><span class="sv">${totM.toFixed(1)} кг</span></div>
+    <div class="sum-row"><span>Объём</span><span class="sv">${totV.toFixed(3)} м³</span></div>
+  `:'<div style="color:var(--m1);text-align:center;font-size:11px">—</div>';
+  document.getElementById('st_m').textContent=totM.toFixed(0)+' кг';
+  document.getElementById('st_v').textContent=totV.toFixed(3)+' м³';
+}
+
+function delCargo(id){ ap().cargos=ap().cargos.filter(c=>c.id!==id); if(editCargoId===id){editCargoId=null;clearForm();} renderCargoList(); save(); toast('Груз удалён','ok'); }
+
+// ══════════════════════════════════════════
+// CARGO FORM
+// ══════════════════════════════════════════
+function openCargoForm(id=null){
+  editCargoId=id;
+  const c=id?cargos().find(x=>x.id===id):null;
+  const col=c?.color||COLORS[colorIdx%COLORS.length];
+  renderCargoList();
+  document.getElementById('rightPanel').innerHTML=`
+  <div class="fsec">
+    <div class="fhd">${c?'Редактировать':'Новый груз'}</div>
+    <div class="fg"><label class="fl">Название *</label><input class="fi" id="fn" value="${c?.name||''}" placeholder="Мыло в коробках…"></div>
+    <div class="fg"><label class="fl">Ед. измерения размеров</label>
+      <select class="fsel" id="fu" onchange="updFL()">
+        <option value="mm" ${c?.unit==='mm'?'sel':''}>Миллиметры</option>
+        <option value="cm" ${(!c||c.unit==='cm')?'selected':''}>Сантиметры</option>
+        <option value="m" ${c?.unit==='m'?'selected':''}>Метры</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Размеры (Д × Ш × В)</label>
+      <div class="fr3">
+        <div><label class="fl" id="lL">Длина</label><input class="fi" id="fL" type="number" step="0.1" value="${c?toU(c.l,c.unit):''}"></div>
+        <div><label class="fl" id="lW">Ширина</label><input class="fi" id="fW" type="number" step="0.1" value="${c?toU(c.w,c.unit):''}"></div>
+        <div><label class="fl" id="lH">Высота</label><input class="fi" id="fH" type="number" step="0.1" value="${c?toU(c.h,c.unit):''}"></div>
+      </div>
+    </div>
+    <div class="fg"><div class="fr2">
+      <div><label class="fl">Количество</label><input class="fi" id="fQ" type="number" min="1" value="${c?.qty||1}"></div>
+      <div><label class="fl">Ед. кол-ва</label>
+        <select class="fsel" id="fQU">
+          <option value="шт" ${(!c||c.qtyUnit==='шт')?'selected':''}>шт</option>
+          <option value="коробки" ${c?.qtyUnit==='коробки'?'selected':''}>коробки</option>
+          <option value="ящики" ${c?.qtyUnit==='ящики'?'selected':''}>ящики</option>
+          <option value="паллеты" ${c?.qtyUnit==='паллеты'?'selected':''}>паллеты</option>
+          <option value="мешки" ${c?.qtyUnit==='мешки'?'selected':''}>мешки</option>
+          <option value="рулоны" ${c?.qtyUnit==='рулоны'?'selected':''}>рулоны</option>
+        </select>
+      </div>
+    </div></div>
+    <div class="fg"><label class="fl">Масса 1 ед. (кг)</label><input class="fi" id="fM" type="number" step="0.1" value="${c?.mass||''}"></div>
+    <div class="fg"><label class="fl">Тип упаковки</label>
+      <select class="fsel" id="fP">
+        <option value="box" ${(!c||c.pkg==='box')?'selected':''}>📦 Коробка</option>
+        <option value="bag" ${c?.pkg==='bag'?'selected':''}>🛍 Мешок</option>
+        <option value="pallet" ${c?.pkg==='pallet'?'selected':''}>🪵 Паллет</option>
+        <option value="roll" ${c?.pkg==='roll'?'selected':''}>🌀 Рулон</option>
+        <option value="other" ${c?.pkg==='other'?'selected':''}>📋 Прочее</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Класс опасности (ДОПОГ)</label>
+      <select class="fsel" id="fD">
+        <option value="0" ${(!c||c.danger==='0')?'selected':''}>Не опасный</option>
+        <option value="1" ${c?.danger==='1'?'selected':''}>Кл.1 — Взрывчатые</option>
+        <option value="2" ${c?.danger==='2'?'selected':''}>Кл.2 — Газы</option>
+        <option value="3" ${c?.danger==='3'?'selected':''}>Кл.3 — Легковосп. жидкости</option>
+        <option value="4" ${c?.danger==='4'?'selected':''}>Кл.4 — Твёрдые</option>
+        <option value="5" ${c?.danger==='5'?'selected':''}>Кл.5 — Окисляющие</option>
+        <option value="6" ${c?.danger==='6'?'selected':''}>Кл.6 — Ядовитые</option>
+        <option value="8" ${c?.danger==='8'?'selected':''}>Кл.8 — Коррозионные</option>
+        <option value="9" ${c?.danger==='9'?'selected':''}>Кл.9 — Прочие</option>
+      </select>
+    </div>
+  </div>
+  <div class="fsec">
+    <div class="fhd">Правила размещения</div>
+    <div class="ftog"><label>Штабелирование (ярусы)</label><div class="tog ${c?.stackable!==false?'on':''}" id="tSt" onclick="this.classList.toggle('on')"></div></div>
+    <div class="ftog"><label>Разворот 90°</label><div class="tog ${c?.rotatable!==false?'on':''}" id="tRo" onclick="this.classList.toggle('on')"></div></div>
+    <div class="ftog"><label>Кантование (на бок)</label><div class="tog ${c?.tiltable?'on':''}" id="tTi" onclick="this.classList.toggle('on')"></div></div>
+    <div class="ftog"><label>Хрупкий ⚠ (только снизу)</label><div class="tog ${c?.fragile?'on':''}" id="tFr" onclick="this.classList.toggle('on')"></div></div>
+  </div>
+  <div class="fsec">
+    <div class="fhd">Цвет</div>
+    <input type="color" class="cin" id="fC" value="${col}">
+  </div>
+  <div style="padding:10px 12px">
+    <button class="bsave" onclick="saveCargo()">💾 Сохранить груз</button>
+    <button class="bsec grn" onclick="saveToCat()">📚 Сохранить в справочник</button>
+    <button class="bsec" onclick="clearForm()">Отмена</button>
+  </div>`;
+  updFL();
+}
+
+function updFL(){
+  const u=document.getElementById('fu')?.value||'cm';
+  const L={mm:'мм',cm:'см',m:'м'}[u];
+  ['L','W','H'].forEach((d,i)=>{const el=document.getElementById('l'+d);if(el)el.textContent=['Длина','Ширина','Высота'][i]+' ('+L+')';});
+}
+function toU(mm,u){return u==='mm'?mm:u==='m'?mm/1000:mm/10;}
+function frU(v,u){const n=parseFloat(v)||0;return u==='mm'?n:u==='m'?n*1000:n*10;}
+
+function readForm(){
+  return {
+    name:document.getElementById('fn').value.trim(),
+    unit:document.getElementById('fu').value,
+    l:frU(document.getElementById('fL').value,document.getElementById('fu').value),
+    w:frU(document.getElementById('fW').value,document.getElementById('fu').value),
+    h:frU(document.getElementById('fH').value,document.getElementById('fu').value),
+    qty:parseInt(document.getElementById('fQ').value)||1,
+    qtyUnit:document.getElementById('fQU').value,
+    mass:parseFloat(document.getElementById('fM').value)||0,
+    pkg:document.getElementById('fP').value,
+    danger:document.getElementById('fD').value,
+    color:document.getElementById('fC').value,
+    stackable:document.getElementById('tSt').classList.contains('on'),
+    rotatable:document.getElementById('tRo').classList.contains('on'),
+    tiltable:document.getElementById('tTi').classList.contains('on'),
+    fragile:document.getElementById('tFr').classList.contains('on'),
+  };
+}
+function saveCargo(){
+  const d=readForm();
+  if(!d.name){toast('⚠ Введите название','err');return;}
+  if(d.l<=0||d.w<=0||d.h<=0){toast('⚠ Укажите размеры','err');return;}
+  const cargo={...d, id:editCargoId||Date.now()};
+  if(editCargoId){const i=cargos().findIndex(x=>x.id===editCargoId);if(i>=0)ap().cargos[i]=cargo;}
+  else{ap().cargos.push(cargo);colorIdx++;}
+  editCargoId=null; renderCargoList(); clearForm(); save();
+  toast(`✓ «${d.name}» сохранён`,'ok');
+}
+function saveToCat(){
+  const d=readForm();
+  if(!d.name){toast('⚠ Введите название','err');return;}
+  if(d.l<=0||d.w<=0||d.h<=0){toast('⚠ Укажите размеры','err');return;}
+  saveCargo();
+  addToCatalog({...d,id:Date.now()});
+}
+function saveCurrentToCatalog(){
+  // Save last added cargo to catalog
+  if(!cargos().length){toast('⚠ Нет грузов в проекте','err');return;}
+  const c=cargos()[cargos().length-1];
+  addToCatalog({...c,id:Date.now()});
+}
+function addToCatalog(c){
+  if(state.catalog.find(x=>x.name===c.name)){toast(`«${c.name}» уже в справочнике`,'warn');return;}
+  state.catalog.push(c); save(); toast(`«${c.name}» добавлен в справочник`,'ok');
+}
+function clearForm(){
+  editCargoId=null;
+  renderCargoList();
+  document.getElementById('rightPanel').innerHTML=`<div class="rp-empty"><div class="ri">📝</div><p>Выберите груз для редактирования или нажмите «+ Добавить»</p></div>`;
+}
+
+// ══════════════════════════════════════════
+// CATALOG
+// ══════════════════════════════════════════
+function openCatalog(mode='use'){
+  catMode=mode;
+  document.getElementById('catOverlay').classList.add('on');
+  renderCatalogBody();
+}
+function closeCatalog(){ document.getElementById('catOverlay').classList.remove('on'); }
+function catTab(btn,m){
+  catMode=m;
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderCatalogBody();
+}
+function renderCatalogBody(){
+  const body=document.getElementById('catBody');
+  if(!state.catalog.length){
+    body.innerHTML=`<div style="color:var(--m1);text-align:center;padding:20px;font-size:11px">Справочник пуст.<br>Создайте груз и нажмите «Сохранить в справочник».</div>`;
+    return;
+  }
+  if(catMode==='use'){
+    body.innerHTML=state.catalog.map((c,i)=>`
+      <div class="cat-item" onclick="addFromCat(${i})">
+        <div class="ci-dot" style="background:${c.color}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+          <div style="font-size:10px;color:var(--m1)">${(c.l/10).toFixed(0)}×${(c.w/10).toFixed(0)}×${(c.h/10).toFixed(0)} см · ${c.mass} кг · ${c.qty} ${c.qtyUnit||'шт'}</div>
+        </div>
+        <span class="add-btn">+ В проект</span>
+      </div>
+    `).join('');
+  } else {
+    body.innerHTML=state.catalog.map((c,i)=>`
+      <div class="cat-item">
+        <div class="ci-dot" style="background:${c.color}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600">${c.name}</div>
+          <div style="font-size:10px;color:var(--m1)">${(c.l/10).toFixed(0)}×${(c.w/10).toFixed(0)}×${(c.h/10).toFixed(0)} см · ${c.mass} кг</div>
+        </div>
+        <span class="edit-btn" onclick="editCatItem(${i})">✏</span>
+        <span class="del-btn" onclick="delCatItem(${i})">×</span>
+      </div>
+    `).join('');
+  }
+}
+function addFromCat(i){
+  const c=JSON.parse(JSON.stringify(state.catalog[i]));
+  c.id=Date.now()+Math.random();
+  ap().cargos.push(c); renderCargoList(); save();
+  toast(`«${c.name}» добавлен в проект`,'ok');
+}
+function delCatItem(i){
+  state.catalog.splice(i,1); save(); renderCatalogBody();
+}
+function editCatItem(i){
+  // Switch to use mode and open form
+  closeCatalog();
+  openCargoForm(null);
+  const c=state.catalog[i];
+  setTimeout(()=>{
+    document.getElementById('fn').value=c.name;
+    document.getElementById('fu').value=c.unit||'cm';
+    document.getElementById('fL').value=toU(c.l,c.unit);
+    document.getElementById('fW').value=toU(c.w,c.unit);
+    document.getElementById('fH').value=toU(c.h,c.unit);
+    document.getElementById('fQ').value=c.qty;
+    document.getElementById('fM').value=c.mass;
+    document.getElementById('fC').value=c.color;
+    updFL();
+  },50);
+}
+
+// ══════════════════════════════════════════
+// TRANSPORT
+// ══════════════════════════════════════════
+let loadMode='pallet';
+function setLoadMode(m){
+  loadMode=m; ap().loadMode=m; save();
+  const lp=document.getElementById('lm_p'),lm=document.getElementById('lm_m');
+  if(!lp||!lm) return;
+  lp.className='lm'+(m==='pallet'?' on':''); lp.style.borderColor=m==='pallet'?'rgba(247,163,37,.5)':'var(--b1)'; lp.style.color=m==='pallet'?'var(--acc2)':'var(--m1)';
+  lm.className='lm'+(m==='manual'?' on blue':''); lm.style.borderColor=m==='manual'?'rgba(43,124,255,.5)':'var(--b1)'; lm.style.color=m==='manual'?'var(--blue)':'var(--m1)';
+  document.getElementById('lmNote').innerHTML=m==='pallet'
+    ?'<b style="color:var(--acc2)">По-паллетно:</b> коробки → Euro-паллеты (1200×800 мм), паллеты расставляются симметрично вдоль оси ТС по 2 в ряд.'
+    :'<b style="color:var(--blue)">Ручная погрузка:</b> коробки заполняют кузов плотными рядами вдоль длины ТС от пола к потолку, с учётом штабелирования.';
+}
+function renderTrList(){
+  const el=document.getElementById('trList'); if(!el) return;
+  let html='', lastCat='';
+  TR.forEach(t=>{
+    if(t.cat!==lastCat){html+=`<div class="tr-cat-label">${CATS_TR[t.cat]}</div>`;lastCat=t.cat;}
+    const sel=ap().transport===t.id;
+    html+=`<div class="tr-card ${sel?'on':''}" id="trc_${t.id}" onclick="selectTr('${t.id}')">
+      <div class="tr-ico">${t.ico}</div>
+      <div class="tr-inf"><div class="tr-nm">${t.name}</div><div class="tr-sp">${t.spec}</div><div class="tr-gs">📋 ${t.gost}</div></div>
+      ${sel?'<div class="tr-chk">✓</div>':''}
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function selectTr(id){
+  ap().transport=id; save();
+  renderTrList();
+  const t=TR.find(x=>x.id===id);
+  if(t){
+    document.getElementById('st_g').textContent='📋 '+t.gost;
+    showTrInfo(t);
+    drawScene();
+  }
+}
+function showTrInfo(t){
+  document.getElementById('rightPanel').innerHTML=`
+  <div class="fsec">
+    <div class="fhd">Транспорт</div>
+    <div style="text-align:center;font-size:32px;margin-bottom:5px">${t.ico}</div>
+    <div style="font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;text-align:center;margin-bottom:10px">${t.name}</div>
+    <div style="background:var(--s2);border-radius:7px;padding:9px 11px;font-size:11px;color:var(--m2);line-height:1.8;margin-bottom:9px">
+      Длина: <b>${(t.W/1000).toFixed(2)} м</b><br>
+      Ширина: <b>${(t.D/1000).toFixed(2)} м</b><br>
+      Высота: <b>${(t.H/1000).toFixed(2)} м</b><br>
+      Грузоподъёмность: <b>${t.maxW.toLocaleString('ru')} кг</b><br>
+      ${t.aLim?`Ось передн. (лимит): <b>${t.aLim.f.toLocaleString('ru')} кг</b><br>Ось задн. (лимит): <b>${t.aLim.r.toLocaleString('ru')} кг</b><br>`:''}
+    </div>
+    <div style="font-size:10px;color:var(--grn);margin-bottom:8px">📋 ${t.gost}</div>
+    ${t.notes?`<div class="wbox">${t.notes}</div>`:''}
+  </div>
+  <div class="fsec">
+    <div class="fhd">Настройки</div>
+    <div class="fg"><label class="fl">Макс. высота загрузки (мм)</label><input class="fi" type="number" id="cH" value="${t.H}" onchange="customH=parseInt(this.value)||0"></div>
+    <div class="fg"><label class="fl">Грузоподъёмность (кг)</label><input class="fi" type="number" id="cW" value="${t.maxW}" onchange="customW=parseInt(this.value)||0"></div>
+  </div>`;
+}
+let customH=0, customW=0;
+
+// ══════════════════════════════════════════
+// PACKING ENGINE
+// ══════════════════════════════════════════
+function getOris(b){
+  const {l,w,h,rotatable,tiltable}=b;
+  const r=[{l,w,h}];
+  if(rotatable) r.push({l:w,w:l,h});
+  if(tiltable){r.push({l,w:h,h:w},{l:h,w:w,h:l});if(rotatable)r.push({l:w,w:h,h:l},{l:h,w:l,h:w});}
+  return r;
+}
+
+function packIntoSpace(boxes, SW, SD, SH, fillAlongX=false){
+  const placed=[], spaces=[{x:0,y:0,z:0,w:SW,d:SD,h:SH}];
+  const rem=[...boxes];
+  for(let i=0;i<rem.length;i++){
+    const box=rem[i]; let bs=-1,bsc=Infinity,bo=null;
+    for(let s=0;s<spaces.length;s++){
+      const sp=spaces[s];
+      for(const o of getOris(box)){
+        if(!box.stackable&&sp.y>0) continue;
+        if(o.l<=sp.w&&o.w<=sp.d&&o.h<=sp.h){
+          const sc=fillAlongX?(sp.x*20+sp.z*5+sp.y):(sp.x+sp.z+sp.y+(sp.w-o.l)+(sp.d-o.w));
+          if(sc<bsc){bsc=sc;bs=s;bo=o;}
+        }
+      }
+    }
+    if(bs>=0&&bo){
+      const sp=spaces[bs];
+      placed.push({...box,px:sp.x,py:sp.y,pz:sp.z,pl:bo.l,pw:bo.w,ph:bo.h});
+      spaces.splice(bs,1);
+      spaces.push({x:sp.x+bo.l,y:sp.y,z:sp.z,w:sp.w-bo.l,d:sp.d,h:sp.h});
+      spaces.push({x:sp.x,y:sp.y,z:sp.z+bo.w,w:bo.l,d:sp.d-bo.w,h:sp.h});
+      if(box.stackable) spaces.push({x:sp.x,y:sp.y+bo.h,z:sp.z,w:bo.l,d:bo.w,h:sp.h-bo.h});
+      spaces.sort((a,b)=>(fillAlongX?(a.x*20+a.z*5+a.y):(a.x+a.y+a.z))-(fillAlongX?(b.x*20+b.z*5+b.y):(b.x+b.y+b.z)));
+      rem.splice(i,1);i--;
+    }
+  }
+  return {placed,remaining:rem};
+}
+
+function calculate(){
+  if(!cargos().length){toast('⚠ Добавьте грузы','err');return;}
+  if(!ap().transport){toast('⚠ Выберите транспорт','err');return;}
+  const t=TR.find(x=>x.id===ap().transport);
+  const TH=customH>0?customH:t.H;
+  const TW_max=customW>0?customW:t.maxW;
+
+  // Expand all boxes, sort heavy/non-fragile first
+  let allBoxes=[];
+  cargos().forEach(c=>{for(let i=0;i<c.qty;i++) allBoxes.push({...c,uid:c.id+'_'+i});});
+  allBoxes.sort((a,b)=>{
+    if(a.fragile&&!b.fragile) return 1; if(!a.fragile&&b.fragile) return -1;
+    return b.mass-a.mass||(b.l*b.w*b.h)-(a.l*a.w*a.h);
+  });
+  const totalMass=allBoxes.reduce((s,b)=>s+b.mass,0);
+  if(totalMass>TW_max){suggestTransport(t,totalMass);return;}
+
+  let units=[];
+  if(loadMode==='pallet'){
+    units=packPalletMode(allBoxes,t,TH);
+  } else {
+    units=packManualMode(allBoxes,t,TH);
+  }
+
+  calcResult={units,transport:t,totalMass,allBoxes,mode:loadMode};
+  curUnit=0;
+  document.getElementById('hint').style.display='none';
+  document.getElementById('axBar').style.display='flex';
+  renderResult(); renderAxes(); updateAxBar(); drawScene();
+  const fill=calcFill(allBoxes,t);
+  document.getElementById('st_f').textContent=fill+'%';
+  updateUnitLabel();
+  save();
+  toast(`✓ ${units.length} ${plur(units.length,'единица','единицы','единиц')} транспорта`,'ok');
+}
+
+function packPalletMode(allBoxes,t,TH){
+  const palH=TH-PAL.H;
+  // Pack boxes onto pallets
+  let rem=[...allBoxes]; const pallets=[];
+  while(rem.length){
+    const r=packIntoSpace(rem,PAL.W,PAL.D,palH,false);
+    pallets.push(r.placed.length?r.placed:[rem.shift()]);
+    rem=r.remaining;
+  }
+  // Arrange pallets in truck: 2 across width, rows along length
+  const perRow=Math.max(1,Math.min(2,Math.floor(t.D/PAL.D)));
+  const rowsPerTruck=Math.max(1,Math.floor(t.W/PAL.W));
+  const perTruck=perRow*rowsPerTruck;
+  const units=[];
+  for(let s=0;s<pallets.length;s+=perTruck){
+    const chunk=pallets.slice(s,s+perTruck);
+    const boxes=[];
+    chunk.forEach((pb,pi)=>{
+      const row=Math.floor(pi/perRow), col=pi%perRow;
+      const offX=row*PAL.W;
+      // Center pallets across truck width
+      const totalPalW=perRow*PAL.D;
+      const offZ=(t.D-totalPalW)/2+col*PAL.D;
+      const offY=PAL.H;
+      pb.forEach(b=>boxes.push({...b,px:offX+b.px,py:offY+b.py,pz:offZ+b.pz,_row:row,_col:col}));
+    });
+    units.push({boxes,totalMass:boxes.reduce((s,b)=>s+b.mass,0),W:t.W,D:t.D,H:TH});
+  }
+  return units.length?units:[{boxes:[],totalMass:0,W:t.W,D:t.D,H:TH}];
+}
+
+function packManualMode(allBoxes,t,TH){
+  let rem=[...allBoxes]; const units=[];
+  while(rem.length){
+    const r=packIntoSpace(rem,t.W,t.D,TH,true);
+    const placed=r.placed.length?r.placed:[rem.shift()];
+    units.push({boxes:placed,totalMass:placed.reduce((s,b)=>s+b.mass,0),W:t.W,D:t.D,H:TH});
+    rem=r.remaining;
+  }
+  return units;
+}
+
+function calcFill(boxes,t){
+  const v=boxes.reduce((s,b)=>s+b.l*b.w*b.h/1e9,0);
+  return (v/(t.W*t.D*t.H/1e9)*100).toFixed(1);
+}
+
+function suggestTransport(cur,mass){
+  const bigger=TR.filter(t=>t.maxW>=mass&&t.id!==cur.id).sort((a,b)=>a.maxW-b.maxW);
+  document.getElementById('suggestMsg').textContent=`Масса груза ${mass.toFixed(0)} кг превышает г/п выбранного ТС (${cur.maxW.toLocaleString('ru')} кг). Подберите подходящий:`;
+  document.getElementById('suggestList').innerHTML=bigger.slice(0,5).map(t=>`
+    <div class="sg-card" onclick="selectTr('${t.id}');closeMod('suggestMod');calculate()">
+      <span style="font-size:20px">${t.ico}</span>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600">${t.name}</div><div style="font-size:10px;color:var(--m1)">${t.spec}</div></div>
+      <span class="sg-badge b-ok">✓ ${t.maxW.toLocaleString('ru')} кг</span>
+    </div>
+  `).join('')||`<div class="wbox">Груз слишком тяжёлый — разбейте на несколько ТС.</div>`;
+  showMod('suggestMod');
+}
+
+// ══════════════════════════════════════════
+// RESULT & AXES
+// ══════════════════════════════════════════
+function renderResult(){
+  if(!calcResult){document.getElementById('resultPanel').innerHTML=`<div style="color:var(--m1);font-size:11px;text-align:center;padding:20px">Нажмите «Рассчитать»</div>`;return;}
+  const {units,transport:t,totalMass,allBoxes}=calcResult;
+  const fill=calcFill(allBoxes,t);
+  const ow=totalMass>t.maxW;
+  const hd=cargos().some(c=>c.danger!=='0');
+  let html='';
+  if(ow) html+=`<div class="ebox">⚠ Масса ${totalMass.toFixed(0)} кг > г/п ${t.maxW.toLocaleString('ru')} кг! ПДД РФ ст.12.21.1</div>`;
+  if(hd) html+=`<div class="wbox">☢ Опасный груз! Нужен допуск ДОПОГ (Приказ МВД №183)</div>`;
+  html+=`
+    <div class="res-card">
+      <div class="res-title">Итог расчёта</div>
+      <div class="sum-row"><span>Единиц транспорта</span><span class="sv a2" style="font-size:18px">${units.length}</span></div>
+      <div class="sum-row"><span>Всего ед. груза</span><span class="sv gn">${allBoxes.length}</span></div>
+      <div class="sum-row"><span>Масса</span><span class="sv ${ow?'rd':''}">${totalMass.toFixed(1)} кг</span></div>
+      <div class="sum-row"><span>Заполнение</span><span class="sv">${fill}%</span></div>
+      <div class="sum-row"><span>Тип загрузки</span><span class="sv" style="font-size:10px">${calcResult.mode==='pallet'?'По-паллетно (Euro)':'Ручная'}</span></div>
+    </div>
+    ${units.map((u,i)=>`
+    <div class="res-card hl" onclick="jumpTo(${i})" style="${i===curUnit?'border-color:var(--acc2)':''}">
+      <div class="res-title">${t.name} #${i+1}</div>
+      <div class="sum-row"><span>Коробок</span><span class="sv">${u.boxes.length}</span></div>
+      <div class="sum-row"><span>Масса</span><span class="sv ${u.totalMass>t.maxW?'rd':''}">${u.totalMass.toFixed(1)} кг</span></div>
+    </div>`).join('')}
+    <div class="res-card"><div class="res-title">Норматив</div><div style="font-size:10px;color:var(--grn);line-height:1.5">${t.gost}</div>${t.notes?`<div style="font-size:10px;color:var(--warn);margin-top:5px">${t.notes}</div>`:''}</div>
+  `;
+  document.getElementById('resultPanel').innerHTML=html;
+}
+
+function renderAxes(){
+  const el=document.getElementById('axesPanel');
+  if(!calcResult){el.innerHTML=`<div style="color:var(--m1);font-size:11px;text-align:center;padding:20px">Выполните расчёт</div>`;return;}
+  const {transport:t,units}=calcResult;
+  if(t.type!=='truck'){el.innerHTML=`<div class="gbox">Расчёт осей — только для автотранспорта.</div>`;return;}
+  const u=units[curUnit]||units[0];
+  const {fKg,rKg,ratio}=getAxleLoads(u,t);
+  const lims=t.aLim||{f:99999,r:99999};
+  const fPct=Math.min(100,fKg/lims.f*100), rPct=Math.min(100,rKg/lims.r*100);
+  const fColor=fPct>100?'var(--red)':fPct>85?'var(--warn)':'#60a5fa';
+  const rColor=rPct>100?'var(--red)':rPct>85?'var(--warn)':'var(--acc2)';
+  el.innerHTML=`
+    <div class="ax-gauge">
+      <div class="ag-title">Нагрузка на оси — ${t.name} #${curUnit+1}</div>
+      <div style="font-size:10px;color:var(--m2);margin-bottom:10px">Центр масс: ${(ratio*100).toFixed(1)}% от передней оси ТС</div>
+      <div class="ag-row">
+        <div class="ag-label"><span>Передняя ось</span><span style="font-weight:700;color:${fColor}">${fKg} / ${lims.f.toLocaleString('ru')} кг</span></div>
+        <div class="ag-bar"><div class="ag-fill" style="width:${Math.min(100,fPct)}%;background:${fColor}"></div></div>
+      </div>
+      <div class="ag-row">
+        <div class="ag-label"><span>Задняя ось</span><span style="font-weight:700;color:${rColor}">${rKg} / ${lims.r.toLocaleString('ru')} кг</span></div>
+        <div class="ag-bar"><div class="ag-fill" style="width:${Math.min(100,rPct)}%;background:${rColor}"></div></div>
+      </div>
+      ${fPct>100||rPct>100
+        ?`<div class="ebox" style="margin-top:8px">⚠ Превышена нагрузка! Постановление Правительства РФ №272. Штраф до 500 000 ₽. Перераспределите груз.</div>`
+        :fPct>85||rPct>85
+          ?`<div class="wbox" style="margin-top:8px">Нагрузка близка к предельной. Рекомендуется выровнять груз.</div>`
+          :`<div class="gbox" style="margin-top:8px">✓ Нагрузки в норме (Постановление РФ №272).</div>`}
+      <div style="font-size:9px;color:var(--m1);margin-top:8px;line-height:1.5">Расчёт ориентировочный. ГОСТ Р 52290-2004, Постановление Правительства РФ №272 от 15.04.2011.</div>
+    </div>`;
+}
+
+function getAxleLoads(unit,t){
+  let sx=0,sm=0;
+  unit.boxes.forEach(b=>{sx+=b.mass*(b.px+b.pl/2);sm+=b.mass;});
+  const ratio=sm>0?sx/sm/t.W:0.5;
+  return {fKg:Math.round((1-ratio)*sm), rKg:Math.round(ratio*sm), ratio};
+}
+
+function updateAxBar(){
+  if(!calcResult) return;
+  const t=calcResult.transport;
+  if(t.type!=='truck'){document.getElementById('axBar').style.display='none';return;}
+  const u=calcResult.units[curUnit]||calcResult.units[0];
+  const {fKg,rKg,ratio}=getAxleLoads(u,t);
+  document.getElementById('ax_f').textContent=fKg;
+  document.getElementById('ax_r').textContent=rKg;
+  document.getElementById('ax_p').textContent=calcFill(calcResult.allBoxes,t)+'%';
+  const lims=t.aLim||{f:99999,r:99999};
+  const ok=fKg<=lims.f&&rKg<=lims.r;
+  document.getElementById('ax_s').innerHTML=ok
+    ?'<span style="color:var(--grn)">✓ Оси в норме</span>'
+    :`<span style="color:var(--red)">⚠ Превышение оси!</span>`;
+}
+
+function jumpTo(i){ curUnit=i; drawScene(); renderResult(); renderAxes(); updateAxBar(); updateUnitLabel(); }
+function prevU(){ if(calcResult&&curUnit>0) jumpTo(curUnit-1); }
+function nextU(){ if(calcResult&&curUnit<calcResult.units.length-1) jumpTo(curUnit+1); }
+function updateUnitLabel(){
+  const t=calcResult?.transport;
+  const total=calcResult?.units.length||0;
+  document.getElementById('unitLabel').textContent=total?`${t.name} ${curUnit+1} из ${total}`:'— / —';
+}
+
+// ══════════════════════════════════════════
+// 3D ENGINE
+// ══════════════════════════════════════════
+let cvs,ctx;
+function initCanvas(){
+  cvs=document.getElementById('cvs');ctx=cvs.getContext('2d');
+  resize();window.addEventListener('resize',resize);
+  cvs.addEventListener('mousedown',e=>{drag=true;lmx=e.clientX;lmy=e.clientY;});
+  cvs.addEventListener('mousemove',e=>{if(!drag)return;camY+=(e.clientX-lmx)*.5;camX+=(e.clientY-lmy)*.3;camX=Math.max(-89,Math.min(89,camX));lmx=e.clientX;lmy=e.clientY;drawScene();});
+  cvs.addEventListener('mouseup',()=>drag=false);cvs.addEventListener('mouseleave',()=>drag=false);
+  cvs.addEventListener('wheel',e=>{camZ*=e.deltaY>0?.9:1.1;camZ=Math.max(.2,Math.min(4,camZ));drawScene();});
+  cvs.addEventListener('touchstart',e=>{drag=true;lmx=e.touches[0].clientX;lmy=e.touches[0].clientY;});
+  cvs.addEventListener('touchmove',e=>{if(!drag)return;camY+=(e.touches[0].clientX-lmx)*.5;camX+=(e.touches[0].clientY-lmy)*.3;camX=Math.max(-89,Math.min(89,camX));lmx=e.touches[0].clientX;lmy=e.touches[0].clientY;drawScene();e.preventDefault();},{passive:false});
+  cvs.addEventListener('touchend',()=>drag=false);
+  drawScene();
+}
+function resize(){ const p=cvs.parentElement;cvs.width=p.clientWidth;cvs.height=p.clientHeight;drawScene(); }
+function resetCam(){camX=28;camY=-38;camZ=1;drawScene();}
+function setV(v){
+  view=v;
+  ['3d','Top','Fr','Sd'].forEach(x=>document.getElementById('vb'+x)?.classList.remove('on'));
+  ({v3d:'3d',vtop:'Top',vfront:'Fr',vside:'Sd'}); // map
+  const map={v:'vb'+{_3d:'3d',top:'Top',front:'Fr',side:'Sd'}['_'+v]};
+  document.getElementById('vb'+{_3d:'3d',_top:'Top',_front:'Fr',_side:'Sd'}['_'+v]||('vb'+v.charAt(0).toUpperCase()+v.slice(1)))?.classList.add('on');
+  if(v==='3d'){camX=28;camY=-38;}else if(v==='top'){camX=89;camY=0;}else if(v==='front'){camX=0;camY=0;}else if(v==='side'){camX=0;camY=-90;}
+  drawScene();
+}
+
+function p3(x,y,z){
+  const W=cvs.width,H=cvs.height,sc=camZ;
+  const ax=camX*Math.PI/180,ay=camY*Math.PI/180;
+  const rx=x*Math.cos(ay)+z*Math.sin(ay);
+  const ry=-x*Math.sin(ax)*Math.sin(ay)+y*Math.cos(ax)+z*Math.sin(ax)*Math.cos(ay);
+  const baseScale=(Math.min(W,H)*.38);
+  return{x:W/2+rx*sc*baseScale/1,y:H/2-ry*sc*baseScale/1};
+}
+
+function drawScene(){
+  if(!cvs||!ctx)return;
+  const W=cvs.width,H=cvs.height;
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b0e18');g.addColorStop(1,'#0f1320');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const tId=ap().transport;
+  const t=tId?TR.find(x=>x.id===tId):null;
+  if(!t) return;
+
+  const maxD=Math.max(t.W,t.D,t.H);
+  const sc=camZ*(Math.min(W,H)*.35)/maxD;
+  const OX=-t.W/2,OY=-t.H/2,OZ=-t.D/2;
+
+  // Override p3 with local scale
+  const pp=(x,y,z)=>{
+    const ax=camX*Math.PI/180,ay=camY*Math.PI/180;
+    const rx=x*Math.cos(ay)+z*Math.sin(ay);
+    const ry=-x*Math.sin(ax)*Math.sin(ay)+y*Math.cos(ax)+z*Math.sin(ax)*Math.cos(ay);
+    return{x:W/2+rx*sc,y:H/2-ry*sc};
+  };
+
+  drawGrid(ctx,OX,OY,OZ,t.W,t.D,pp);
+  drawB(ctx,OX,OY,OZ,t.W,t.H,t.D,pp,'rgba(43,124,255,.04)','rgba(43,124,255,.18)',true);
+
+  if(!calcResult){return;}
+  const unit=calcResult.units[curUnit];if(!unit)return;
+
+  // Pallet bases
+  if(calcResult.mode==='pallet'){
+    const seen=new Set();
+    unit.boxes.forEach(b=>{
+      const k=`${b._row||0}_${b._col||0}`;
+      if(!seen.has(k)){seen.add(k);
+        const ox=OX+(b._row||0)*PAL.W, oz=OZ+(b._col||0)*PAL.D;
+        drawB(ctx,ox,OY,oz,PAL.W,PAL.H,PAL.D,pp,'#5a3010','#3a1e08',false,'#281408');
+      }
+    });
+  }
+
+  // Sort boxes
+  const sorted=[...unit.boxes].sort((a,b)=>{
+    const pa=pp(OX+a.px+a.pl/2,OY+a.py+a.ph/2,OZ+a.pz+a.pw/2);
+    const pb=pp(OX+b.px+b.pl/2,OY+b.py+b.ph/2,OZ+b.pz+b.pw/2);
+    return(pb.x+pb.y)-(pa.x+pa.y);
+  });
+  sorted.forEach(b=>{
+    drawB(ctx,OX+b.px,OY+b.py,OZ+b.pz,b.pl,b.ph,b.pw,pp,
+      b.color+'cc',adjC(b.color,-40)+'cc',false,adjC(b.color,-70)+'cc');
+  });
+
+  // Center of mass line
+  if(t.type==='truck'){
+    let sx=0,sm=0;unit.boxes.forEach(b=>{sx+=b.mass*(b.px+b.pl/2);sm+=b.mass;});
+    if(sm>0){
+      const cx=sx/sm, p1=pp(OX+cx,OY,OZ), p2=pp(OX+cx,OY+t.H,OZ);
+      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+      ctx.strokeStyle='rgba(247,163,37,.55)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(247,163,37,.8)';ctx.font='10px Golos Text,sans-serif';ctx.fillText('ЦМ',p2.x+4,p2.y+3);
+    }
+  }
+
+  // Legend
+  const leg=new Map();
+  unit.boxes.forEach(b=>{if(!leg.has(b.id))leg.set(b.id,{c:b.color,n:b.name,cnt:0});leg.get(b.id).cnt++;});
+  let ly=H-12-leg.size*18;
+  leg.forEach(v=>{
+    ctx.fillStyle=v.c;ctx.beginPath();ctx.roundRect(12,ly,8,8,2);ctx.fill();
+    ctx.fillStyle='rgba(220,227,240,.65)';ctx.font='10px Golos Text,sans-serif';
+    ctx.fillText(`${v.n} (${v.cnt})`,24,ly+7);ly+=18;
+  });
+  // dims
+  ctx.fillStyle='rgba(107,120,153,.45)';ctx.font='10px monospace';ctx.textAlign='center';
+  ctx.fillText(`${(t.W/1000).toFixed(2)}×${(t.D/1000).toFixed(2)}×${(t.H/1000).toFixed(2)} м`,W/2,H-4);
+  ctx.textAlign='left';
+}
+
+function drawB(ctx,x,y,z,w,h,d,pp,tc,sc,wire,fc){
+  const P=[pp(x,y,z),pp(x+w,y,z),pp(x+w,y+h,z),pp(x,y+h,z),pp(x,y,z+d),pp(x+w,y,z+d),pp(x+w,y+h,z+d),pp(x,y+h,z+d)];
+  const F=[{v:[4,5,6,7],c:wire?null:tc},{v:[0,1,2,3],c:wire?null:(fc||sc)},{v:[3,2,6,7],c:wire?null:tc},{v:[0,1,5,4],c:wire?null:sc},{v:[1,2,6,5],c:wire?null:sc},{v:[0,3,7,4],c:wire?null:sc}];
+  F.forEach(f=>{
+    ctx.beginPath();ctx.moveTo(P[f.v[0]].x,P[f.v[0]].y);f.v.slice(1).forEach(i=>ctx.lineTo(P[i].x,P[i].y));ctx.closePath();
+    if(f.c){ctx.fillStyle=f.c;ctx.fill();}
+    ctx.strokeStyle=wire?'rgba(43,124,255,.22)':'rgba(0,0,0,.2)';ctx.lineWidth=wire?1:.6;ctx.stroke();
+  });
+}
+function drawGrid(ctx,cx,cy,cz,W,D,pp){
+  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=.5;
+  for(let i=0;i<=8;i++){
+    const px=cx+W*i/8;const a=pp(px,cy,cz),b=pp(px,cy,cz+D);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    const pz=cz+D*i/8;const c=pp(cx,cy,pz),d=pp(cx+W,cy,pz);ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.stroke();
+  }
+}
+function adjC(hex,a){const n=parseInt(hex.replace('#',''),16);return'#'+[0,8,16].map(s=>Math.max(0,Math.min(255,((n>>s)&255)+a)).toString(16).padStart(2,'0')).reverse().join('');}
+
+// ══════════════════════════════════════════
+// PDF
+// ══════════════════════════════════════════
+function exportPDF(){
+  if(!calcResult){toast('⚠ Сначала рассчитайте','err');return;}
+  const {units,transport:t,totalMass,allBoxes}=calcResult;
+  const fill=calcFill(allBoxes,t);
+  const now=new Date().toLocaleString('ru-RU');
+  document.getElementById('pdfBody').innerHTML=`
+    <h3>Схема погрузки — ${ap().name}</h3>
+    <div style="color:#666;font-size:10px;margin-bottom:8px">${now}</div>
+    <h3>Транспорт</h3>
+    <div class="pdf-row"><span>Тип</span><span><b>${t.name}</b></span></div>
+    <div class="pdf-row"><span>Размеры</span><span>${t.W}×${t.D}×${t.H} мм</span></div>
+    <div class="pdf-row"><span>Г/П</span><span>${t.maxW.toLocaleString('ru')} кг</span></div>
+    <div class="pdf-row"><span>Норматив</span><span>${t.gost}</span></div>
+    <div class="pdf-row"><span>Тип загрузки</span><span>${calcResult.mode==='pallet'?'По-паллетно (Euro 1200×800)':'Ручная погрузка'}</span></div>
+    <h3>Грузы</h3>
+    ${cargos().map(c=>`<div class="pdf-row"><span>${c.name}</span><span>${c.qty} ${c.qtyUnit||'шт'} × ${c.mass} кг = ${(c.qty*c.mass).toFixed(1)} кг | ${(c.l/10).toFixed(0)}×${(c.w/10).toFixed(0)}×${(c.h/10).toFixed(0)} см${c.danger!=='0'?' ⚠ДОПОГ кл.'+c.danger:''}</span></div>`).join('')}
+    <h3>Результат</h3>
+    <div class="pdf-row"><span>Единиц транспорта</span><span><b>${units.length}</b></span></div>
+    <div class="pdf-row"><span>Масса</span><span>${totalMass.toFixed(1)} кг</span></div>
+    <div class="pdf-row"><span>Заполнение</span><span>${fill}%</span></div>
+    ${units.map((u,i)=>{const {fKg,rKg}=t.type==='truck'?getAxleLoads(u,t):{fKg:0,rKg:0};return`<h3>${t.name} #${i+1}</h3><div class="pdf-row"><span>Коробок</span><span>${u.boxes.length}</span></div><div class="pdf-row"><span>Масса</span><span>${u.totalMass.toFixed(1)} кг</span></div>${t.type==='truck'?`<div class="pdf-row"><span>Пер. ось / Зад. ось</span><span>${fKg} кг / ${rKg} кг</span></div>`:''}`}).join('')}
+    <div style="border-top:1px solid #eee;padding-top:8px;color:#999;font-size:9px;margin-top:8px">Документ вспомогательный, не заменяет ТТН/ТОРГ-12/CMR. ФЗ №259, ПДД РФ, ГОСТ Р 52924-2008, Постановление Правительства РФ №272.</div>`;
+  showMod('pdfMod');
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function showMod(id){document.getElementById(id).classList.add('on');}
+function closeMod(id){document.getElementById(id).classList.remove('on');}
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast on ${type}`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),3200);}
+function plur(n,a,b,c){const m=n%10,m2=n%100;if(m===1&&m2!==11)return a;if([2,3,4].includes(m)&&![12,13,14].includes(m2))return b;return c;}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');}));
+</script>
+</body>
+</html>
